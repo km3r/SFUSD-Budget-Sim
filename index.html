@@ -17,7 +17,7 @@
             min-height: 100vh;
             padding: 0;
             color: #333;
-            padding-top: 290px;
+            /* Padding will be set dynamically by JavaScript */
         }
 
         .container {
@@ -34,7 +34,7 @@
             background: white;
             box-shadow: 0 4px 20px rgba(0,0,0,0.15);
             z-index: 1000;
-            padding: 15px 20px;
+            padding: 12px 20px;
         }
 
         .banner-content {
@@ -46,34 +46,35 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
             border-bottom: 2px solid #f0f0f0;
         }
 
         .banner-header h1 {
             color: #667eea;
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             margin: 0;
+            line-height: 1.2;
         }
 
         .banner-header p {
             color: #666;
-            font-size: 0.9rem;
-            margin: 0;
+            font-size: 0.8rem;
+            margin: 3px 0 0 0;
         }
 
         .banner-title {
             color: #667eea;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 600;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .banner-section {
-            margin-bottom: 12px;
+            margin-bottom: 8px;
         }
 
         .banner-page-tabs {
@@ -83,15 +84,16 @@
 
         .banner-page-tab {
             flex: 1;
-            padding: 10px 15px;
+            padding: 8px 12px;
             border: 2px solid #e0e0e0;
             background: #f8f9fa;
             border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             transition: all 0.3s ease;
             text-align: center;
+            line-height: 1.3;
         }
 
         .banner-page-tab:hover {
@@ -181,15 +183,23 @@
         }
 
         .proposal-btn {
-            padding: 12px;
+            padding: 8px 10px;
             border: 2px solid #e0e0e0;
             background: white;
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 600;
             text-align: center;
+            line-height: 1.3;
+        }
+
+        .proposal-btn small {
+            display: block;
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-top: 2px;
         }
 
         .proposal-btn:hover {
@@ -710,12 +720,17 @@
                     <h1>🏫 SFUSD Budget Simulator</h1>
                     <p>Explore labor proposals and required budget cuts for 2025-27</p>
                 </div>
-                <div style="text-align: right;">
-                    <div style="font-size: 0.85rem; color: #666; margin-bottom: 5px;">2026-27 Budget Gap</div>
-                    <div style="font-size: 1.8rem; font-weight: 700; color: #dc2626;" id="bannerTotalGap">$102.0M</div>
-                    <div style="font-size: 0.75rem; color: #888; margin-top: 3px;">
-                        <span id="bannerBreakdown">Base deficit only</span>
+                <div style="text-align: right; display: flex; align-items: center; gap: 15px;">
+                    <div>
+                        <div style="font-size: 0.75rem; color: #666; margin-bottom: 3px;">2026-27 Budget Gap</div>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: #dc2626;" id="bannerTotalGap">$102.0M</div>
+                        <div style="font-size: 0.7rem; color: #888; margin-top: 2px;">
+                            <span id="bannerBreakdown">Base deficit only</span>
+                        </div>
                     </div>
+                    <button onclick="shareScenario()" style="padding: 8px 12px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; white-space: nowrap; height: fit-content;">
+                        📋 Share
+                    </button>
                 </div>
             </div>
 
@@ -1612,6 +1627,8 @@
             if (document.getElementById('cutsPage').classList.contains('active')) {
                 updateLaborCostInCuts();
             }
+            
+            scheduleSave();
         }
 
         function updateCustom() {
@@ -1639,6 +1656,8 @@
             if (document.getElementById('cutsPage').classList.contains('active')) {
                 updateLaborCostInCuts();
             }
+            
+            scheduleSave();
         }
 
         function calculateCosts(proposal) {
@@ -1799,6 +1818,7 @@
             currentReserveUsage = parseFloat(slider.value);
             document.getElementById('reserveValue').textContent = `$${currentReserveUsage.toFixed(0)}M`;
             updateCutsDisplay();
+            scheduleSave();
         }
 
         function updateLaborCostInCuts() {
@@ -1868,6 +1888,7 @@
             }
             
             updateCutsDisplay();
+            scheduleSave();
         }
 
         function updateSliderCut(cutId, maxValue) {
@@ -1887,6 +1908,7 @@
             
             updateSliderLabel(cutId, percentage);
             updateCutsDisplay();
+            scheduleSave();
         }
 
         function updateSchoolClosures() {
@@ -1907,6 +1929,7 @@
             document.getElementById('label-school-closures').textContent = `${numSchools} school${numSchools !== 1 ? 's' : ''}`;
             document.getElementById('amount-school-closures').textContent = `$${amount.toFixed(1)}M`;
             updateCutsDisplay();
+            scheduleSave();
         }
 
         function updateSliderLabel(cutId, percentage) {
@@ -2020,9 +2043,208 @@
             window.scrollTo(0, 0);
         }
 
+        // ========== DYNAMIC BANNER HEIGHT ADJUSTMENT ==========
+        
+        function adjustBodyPadding() {
+            const banner = document.querySelector('.fixed-banner');
+            if (banner) {
+                const bannerHeight = banner.offsetHeight;
+                document.body.style.paddingTop = (bannerHeight + 20) + 'px'; // Add 20px spacing
+            }
+        }
+        
+        // Adjust on page load
+        adjustBodyPadding();
+        
+        // Adjust on window resize
+        window.addEventListener('resize', adjustBodyPadding);
+        
+        // Also adjust whenever content changes that might affect banner height
+        const observer = new ResizeObserver(() => {
+            adjustBodyPadding();
+        });
+        
+        const banner = document.querySelector('.fixed-banner');
+        if (banner) {
+            observer.observe(banner);
+        }
+        
         // Initialize
         updateDisplay('union');
         updateCutsDisplay();
+        
+        // ========== URL PARAMETER MANAGEMENT ==========
+        
+        function saveToURL() {
+            const params = new URLSearchParams();
+            
+            // Save current proposal
+            params.set('proposal', currentProposal);
+            
+            // Save custom proposal settings if custom is selected
+            if (currentProposal === 'custom') {
+                params.set('salary', document.getElementById('salarySlider').value);
+                params.set('health', document.getElementById('healthBenefits').checked ? '1' : '0');
+                params.set('specialed', document.getElementById('specialEd').checked ? '1' : '0');
+                params.set('classsize', document.getElementById('classSize').checked ? '1' : '0');
+                params.set('staffing', document.getElementById('staffing').checked ? '1' : '0');
+            }
+            
+            // Save reserve usage
+            params.set('reserves', currentReserveUsage);
+            
+            // Save selected cuts
+            const cutSelections = [];
+            for (const [cutId, amount] of Object.entries(selectedCuts)) {
+                // For fixed cuts, just save the cut ID
+                if (fixedCuts[cutId]) {
+                    cutSelections.push(cutId);
+                } else {
+                    // For variable cuts, save ID:amount
+                    cutSelections.push(`${cutId}:${amount.toFixed(2)}`);
+                }
+            }
+            if (cutSelections.length > 0) {
+                params.set('cuts', cutSelections.join(','));
+            }
+            
+            // Update URL without reloading page
+            const newURL = window.location.pathname + '?' + params.toString();
+            window.history.replaceState({}, '', newURL);
+        }
+        
+        function loadFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            
+            // Load proposal
+            const proposal = params.get('proposal');
+            if (proposal && ['union', 'district', 'panel', 'custom'].includes(proposal)) {
+                currentProposal = proposal;
+                
+                // Update proposal button selection
+                document.querySelectorAll('.proposal-btn').forEach((btn, index) => {
+                    btn.classList.remove('active');
+                    const proposals = ['union', 'district', 'panel', 'custom'];
+                    if (proposals[index] === proposal) {
+                        btn.classList.add('active');
+                    }
+                });
+                
+                // Load custom settings if custom proposal
+                if (proposal === 'custom') {
+                    document.getElementById('salarySlider').value = params.get('salary') || '4';
+                    document.getElementById('healthBenefits').checked = params.get('health') === '1';
+                    document.getElementById('specialEd').checked = params.get('specialed') === '1';
+                    document.getElementById('classSize').checked = params.get('classsize') === '1';
+                    document.getElementById('staffing').checked = params.get('staffing') === '1';
+                    document.getElementById('customControls').classList.add('active');
+                    document.getElementById('customControlsTitle').style.display = 'block';
+                    updateCustom();
+                } else {
+                    updateDisplay(proposal);
+                }
+            }
+            
+            // Load reserve usage
+            const reserves = params.get('reserves');
+            if (reserves) {
+                currentReserveUsage = parseFloat(reserves);
+                const slider = document.getElementById('reserveSlider');
+                if (slider) {
+                    slider.value = currentReserveUsage;
+                    document.getElementById('reserveValue').textContent = `$${currentReserveUsage.toFixed(0)}M`;
+                }
+            }
+            
+            // Load cuts
+            const cutsParam = params.get('cuts');
+            if (cutsParam) {
+                const cutsList = cutsParam.split(',');
+                selectedCuts = {};
+                
+                cutsList.forEach(cutEntry => {
+                    if (cutEntry.includes(':')) {
+                        // Variable cut with amount
+                        const [cutId, amount] = cutEntry.split(':');
+                        selectedCuts[cutId] = parseFloat(amount);
+                        
+                        // Update UI for variable cuts
+                        const cutItem = document.querySelector(`[data-cut-id="${cutId}"]`);
+                        if (cutItem) {
+                            cutItem.classList.add('selected');
+                            
+                            // Update slider if applicable
+                            if (cutId === 'school-closures') {
+                                const numSchools = Math.round(parseFloat(amount) / 2.8);
+                                const slider = document.getElementById('slider-school-closures');
+                                if (slider) {
+                                    slider.value = numSchools;
+                                    document.getElementById('label-school-closures').textContent = 
+                                        `${numSchools} school${numSchools !== 1 ? 's' : ''}`;
+                                    document.getElementById('amount-school-closures').textContent = `$${amount}M`;
+                                }
+                            } else if (variableCuts[cutId]) {
+                                // Calculate percentage from amount
+                                const maxAmount = cutId === 'social-workers' ? 5.4 :
+                                                cutId === 'security' ? 3.2 :
+                                                cutId === 'teachers' ? 15.0 :
+                                                cutId === 'counselors' ? 4.5 :
+                                                cutId === 'athletics' ? 12.0 :
+                                                cutId === 'arts-music' ? 15.0 :
+                                                cutId === 'libraries' ? 10.0 : 0;
+                                const percentage = (parseFloat(amount) / maxAmount) * 100;
+                                const slider = document.getElementById(`slider-${cutId}`);
+                                if (slider) {
+                                    slider.value = percentage;
+                                    updateSliderLabel(cutId, percentage);
+                                }
+                            }
+                        }
+                    } else {
+                        // Fixed cut
+                        const cutId = cutEntry;
+                        if (fixedCuts[cutId]) {
+                            selectedCuts[cutId] = fixedCuts[cutId];
+                            const checkbox = document.getElementById(`check-${cutId}`);
+                            const cutItem = document.querySelector(`[data-cut-id="${cutId}"]`);
+                            if (checkbox) checkbox.checked = true;
+                            if (cutItem) cutItem.classList.add('selected');
+                        }
+                    }
+                });
+                
+                updateCutsDisplay();
+            }
+        }
+        
+        // Load from URL on page load
+        loadFromURL();
+        
+        // Share scenario function
+        function shareScenario() {
+            saveToURL();
+            const url = window.location.href;
+            
+            // Try to copy to clipboard
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(url).then(() => {
+                    alert('Scenario URL copied to clipboard! Share this link to show your exact budget selections.');
+                }).catch(() => {
+                    // Fallback: show URL in prompt
+                    prompt('Copy this URL to share your scenario:', url);
+                });
+            } else {
+                // Fallback for browsers without clipboard API
+                prompt('Copy this URL to share your scenario:', url);
+            }
+        }
+        
+        // Save to URL whenever state changes (debounced to avoid too many updates)
+        let saveTimeout;
+        function scheduleSave() {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(saveToURL, 300);
+        }
     </script>
 </body>
 </html>
